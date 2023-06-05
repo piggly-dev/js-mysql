@@ -6,6 +6,10 @@ An ESM/CommonJS library following Oriented-Object Programming pattern to manager
 
 > Work in progress
 
+## Usage
+
+This package is only a wrapper. Applying the `@piggly/ddd-toolkit` behavior to `mysql2` library. May not be for every project or everyone.
+
 ## Changelog
 
 See the [CHANGELOG](CHANGELOG.md) file for information about all code changes.
