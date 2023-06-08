@@ -12,12 +12,7 @@ module.exports = {
 			statements: 60,
 		},
 	},
-	coveragePathIgnorePatterns: [
-		'./node_modules/',
-		'./test/',
-		'./debug',
-		'./build',
-	],
+	coveragePathIgnorePatterns: ['./node_modules/', './test/', './debug', './build'],
 	coverageReporters: ['json-summary', 'text', 'lcov'],
 	transform: {
 		'^.+\\.ts?$': [
@@ -35,5 +30,5 @@ module.exports = {
 		'@test/(.*)': '<rootDir>/test/$1',
 	},
 	moduleDirectories: ['node_modules', '<rootDir>/src'],
-	extensionsToTreatAsEsm: ['.ts'],
+	setupFiles: ['<rootDir>/test/env.ts'],
 };
