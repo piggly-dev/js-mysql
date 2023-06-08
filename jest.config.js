@@ -30,4 +30,5 @@ module.exports = {
 		'@test/(.*)': '<rootDir>/test/$1',
 	},
 	moduleDirectories: ['node_modules', '<rootDir>/src'],
+	setupFiles: ['<rootDir>/test/env.ts'],
 };
