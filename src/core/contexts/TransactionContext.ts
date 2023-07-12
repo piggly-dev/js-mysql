@@ -1,13 +1,14 @@
-import mysql2 from 'mysql2/promise';
+import { TransactionContextInterface } from '@/types';
 import QueryContext from './QueryContext';
 
 /**
  * @file Transaction context to execute SQL instructions.
  * @copyright Piggly Lab 2023
  */
-export default class TransactionContext<
-	Connection extends mysql2.Connection
-> extends QueryContext<Connection> {
+export default class TransactionContext
+	extends QueryContext
+	implements TransactionContextInterface
+{
 	/**
 	 * Transaction state.
 	 *
@@ -34,12 +35,18 @@ export default class TransactionContext<
 			this._connection
 				.beginTransaction()
 				.then(() => {
-					resolve();
 					this._started = true;
+					resolve();
 				})
 				.catch(error => {
-					reject(error);
-					this._started = false;
+					this.rollback()
+						.then(() => {
+							reject(error);
+						})
+						.catch(() => {
+							this._started = false;
+							reject(error);
+						});
 				});
 		});
 	}
