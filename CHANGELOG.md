@@ -11,3 +11,7 @@
 ## 1.1.1 at `2023-07-12`
 
 * Pooling will not use connection, connection belongs to pooling contexts.
+
+## 1.1.2 at `2023-07-12`
+
+* Release connection after query when pooling.

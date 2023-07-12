@@ -64,6 +64,9 @@ export default class QueryInPoolContext implements QueryContextInterface {
 						})
 						.catch(error => {
 							reject(error);
+						})
+						.finally(() => {
+							if (connection) connection.release();
 						});
 				})
 				.catch(error => {
@@ -104,6 +107,9 @@ export default class QueryInPoolContext implements QueryContextInterface {
 						})
 						.catch(error => {
 							reject(error);
+						})
+						.finally(() => {
+							if (connection) connection.release();
 						});
 				})
 				.catch(error => {

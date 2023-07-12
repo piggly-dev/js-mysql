@@ -114,7 +114,7 @@ export default class TransactionInPoolContext
 					reject(error);
 				})
 				.finally(() => {
-					this._connection?.release();
+					if (this._connection) this._connection.release();
 					this._connection = undefined;
 				});
 		});
@@ -150,7 +150,7 @@ export default class TransactionInPoolContext
 					reject(error);
 				})
 				.finally(() => {
-					this._connection?.release();
+					if (this._connection) this._connection.release();
 					this._connection = undefined;
 				});
 		});
