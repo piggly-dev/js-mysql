@@ -1,34 +1,35 @@
 import { QueryContextInterface, QueryPlaceholder, QueryResponse } from '@/types';
 import mysql2 from 'mysql2/promise';
+import type PoolingMySQL from '@/core/PoolingMySQL';
 
 /**
  * @file Query context to execute SQL instructions.
  * @copyright Piggly Lab 2023
  */
-export default class QueryContext implements QueryContextInterface {
+export default class QueryInPoolContext implements QueryContextInterface {
 	/**
-	 * Main connection.
+	 * Main pool.
 	 *
-	 * @type {mysql2.Connection}
+	 * @type {PoolingMySQL}
 	 * @protected
 	 * @memberof QueryContext
 	 * @since 1.0.0
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
-	protected _connection: mysql2.Connection;
+	protected _pool: PoolingMySQL;
 
 	/**
 	 * Create context.
 	 *
-	 * @param {mysql2.Connection} connection
+	 * @param {PoolingMySQL} pool
 	 * @public
 	 * @constructor
 	 * @memberof MySQL
 	 * @since 1.0.0
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
-	constructor(connection: mysql2.Connection) {
-		this._connection = connection;
+	constructor(pool: PoolingMySQL) {
+		this._pool = pool;
 	}
 
 	/**
@@ -48,15 +49,22 @@ export default class QueryContext implements QueryContextInterface {
 		values?: QueryPlaceholder
 	): Promise<T> {
 		return new Promise<T>((resolve, reject) => {
-			this._connection
-				.execute<any>(sql, values)
-				.then(([rows]) => {
-					if (Array.isArray(rows) === false) {
-						resolve([rows] as T);
-						return;
-					}
+			this._pool
+				.connect()
+				.then(connection => {
+					connection
+						.execute<any>(sql, values)
+						.then(([rows]) => {
+							if (Array.isArray(rows) === false) {
+								resolve([rows] as T);
+								return;
+							}
 
-					resolve(rows);
+							resolve(rows);
+						})
+						.catch(error => {
+							reject(error);
+						});
 				})
 				.catch(error => {
 					reject(error);
@@ -81,15 +89,22 @@ export default class QueryContext implements QueryContextInterface {
 		values?: QueryPlaceholder
 	): Promise<T> {
 		return new Promise<T>((resolve, reject) => {
-			this._connection
-				.execute<any>(options, values)
-				.then(([rows]) => {
-					if (Array.isArray(rows) === false) {
-						resolve([rows] as T);
-						return;
-					}
+			this._pool
+				.connect()
+				.then(connection => {
+					connection
+						.execute<any>(options, values)
+						.then(([rows]) => {
+							if (Array.isArray(rows) === false) {
+								resolve([rows] as T);
+								return;
+							}
 
-					resolve(rows);
+							resolve(rows);
+						})
+						.catch(error => {
+							reject(error);
+						});
 				})
 				.catch(error => {
 					reject(error);

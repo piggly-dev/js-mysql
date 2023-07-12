@@ -1,3 +1,5 @@
+import mysql2 from 'mysql2/promise';
+
 export type ContextType = 'transaction' | 'query';
 
 export type ConnectionType = 'pool' | 'connection';
@@ -25,4 +27,21 @@ export interface QueryError extends Error {
 	sqlMessage: string;
 	sqlState: string;
 	sql: string;
+}
+
+export interface QueryContextInterface {
+	query<T extends QueryResponse<any>>(
+		sql: string,
+		values?: QueryPlaceholder
+	): Promise<T>;
+	queryWithOptions<T extends QueryResponse<any>>(
+		options: mysql2.QueryOptions,
+		values?: QueryPlaceholder
+	): Promise<T>;
+}
+
+export interface TransactionContextInterface extends QueryContextInterface {
+	begin(): Promise<void>;
+	commit(): Promise<void>;
+	rollback(): Promise<void>;
 }

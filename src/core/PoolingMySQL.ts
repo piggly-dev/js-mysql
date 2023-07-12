@@ -1,16 +1,16 @@
 import mysql2 from 'mysql2/promise';
 import { DatabaseContext } from '@piggly/ddd-toolkit';
-import TransactionContext from '@/core/contexts/TransactionContext';
-import QueryContext from '@/core/contexts/QueryContext';
 import { ContextType } from '@/types';
+import TransactionInPoolContext from './contexts/TransactionInPoolContext';
+import QueryInPoolContext from './contexts/QueryInPoolContext';
 
 /**
  * @file MySQL Database Context for managing connection or pooling.
  * @copyright Piggly Lab 2023
  */
-export default class MySQL extends DatabaseContext {
+export default class PoolingMySQL extends DatabaseContext {
 	/**
-	 * Main connection.
+	 * Active connection.
 	 *
 	 * @type {Connection}
 	 * @protected
@@ -18,7 +18,18 @@ export default class MySQL extends DatabaseContext {
 	 * @since 1.0.0
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
-	protected _connection?: mysql2.Connection;
+	protected _connection?: mysql2.PoolConnection;
+
+	/**
+	 * Pool.
+	 *
+	 * @type {Connection}
+	 * @protected
+	 * @memberof MySQL
+	 * @since 1.0.0
+	 * @author Caique Araujo <caique@piggly.com.br>
+	 */
+	protected _pool?: mysql2.Pool;
 
 	/**
 	 * Options for connection.
@@ -29,7 +40,7 @@ export default class MySQL extends DatabaseContext {
 	 * @since 1.0.0
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
-	protected _options: mysql2.ConnectionOptions;
+	protected _options: mysql2.PoolOptions;
 
 	/**
 	 * Create a new MySQL Database Context.
@@ -41,14 +52,15 @@ export default class MySQL extends DatabaseContext {
 	 * @since 1.0.0
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
-	constructor(options: mysql2.ConnectionOptions) {
+	constructor(options: mysql2.PoolOptions) {
 		super();
 		this._options = options;
 	}
 
 	/**
-	 * Start a new connection or pool.
+	 * Start a pool.
 	 *
+	 * @param {string} type connection or pool.
 	 * @returns {Promise<void>}
 	 * @public
 	 * @async
@@ -57,37 +69,65 @@ export default class MySQL extends DatabaseContext {
 	 * @since 1.0.0
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
-	public async connect(): Promise<void> {
-		if (this._connection) {
+	public async start(): Promise<void> {
+		if (this._pool) {
 			return;
 		}
 
-		this._connection = await mysql2.createConnection(this._options);
+		this._pool = mysql2.createPool(this._options);
+	}
+
+	/**
+	 * Open a new connection for pooling.
+	 *
+	 * @returns {Promise<mysql2.PoolConnection>}
+	 * @public
+	 * @async
+	 * @throws {Error} If invalid type.
+	 * @memberof MySQL
+	 * @since 1.0.0
+	 * @author Caique Araujo <caique@piggly.com.br>
+	 */
+	public async connect(): Promise<mysql2.PoolConnection> {
+		if (this._pool === undefined) {
+			throw new Error('You must start the pool first.');
+		}
+
+		return new Promise<mysql2.PoolConnection>((res, rej) => {
+			this._pool
+				?.getConnection()
+				.then(connection => {
+					res(connection);
+				})
+				.catch(error => {
+					rej(error);
+				});
+		});
 	}
 
 	/**
 	 * Get the query context.
 	 *
 	 * @param {string} type transaction or query.
-	 * @returns {(TransactionContext|QueryContext)}
+	 * @returns {(TransactionInPoolContext|QueryInPoolContext)}
 	 * @public
 	 * @throws {Error} If no connection is available.
 	 * @memberof MySQL
 	 * @since 1.0.0
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
-	public context(type: 'transaction'): TransactionContext;
-	public context(type: 'query'): QueryContext;
-	public context(type: ContextType): TransactionContext | QueryContext {
+	public context(type: 'transaction'): TransactionInPoolContext;
+	public context(type: 'query'): QueryInPoolContext;
+	public context(type: ContextType): TransactionInPoolContext | QueryInPoolContext {
 		if (this._connection === undefined) {
-			throw new Error('No connection');
+			throw new Error('No connection was started.');
 		}
 
 		switch (type) {
 			case 'transaction':
-				return new TransactionContext(this._connection);
+				return new TransactionInPoolContext(this);
 			case 'query':
-				return new QueryContext(this._connection);
+				return new QueryInPoolContext(this);
 			default:
 				throw new Error('Invalid context type');
 		}
@@ -104,12 +144,10 @@ export default class MySQL extends DatabaseContext {
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
 	public async close(): Promise<void> {
-		if (!this._connection) {
-			return;
+		if (this._connection) {
+			await this._connection.end();
+			this._connection = undefined;
 		}
-
-		await this._connection.end();
-		this._connection = undefined;
 	}
 
 	/**
@@ -123,12 +161,15 @@ export default class MySQL extends DatabaseContext {
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
 	public async quit(): Promise<void> {
-		if (!this._connection) {
-			return;
+		if (this._connection) {
+			this._connection.destroy();
+			this._connection = undefined;
 		}
 
-		this._connection.destroy();
-		this._connection = undefined;
+		if (this._pool) {
+			await this._pool.end();
+			this._pool = undefined;
+		}
 	}
 
 	/**
