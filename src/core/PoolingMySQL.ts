@@ -10,17 +10,6 @@ import QueryInPoolContext from './contexts/QueryInPoolContext';
  */
 export default class PoolingMySQL extends DatabaseContext {
 	/**
-	 * Active connection.
-	 *
-	 * @type {Connection}
-	 * @protected
-	 * @memberof MySQL
-	 * @since 1.0.0
-	 * @author Caique Araujo <caique@piggly.com.br>
-	 */
-	protected _connection?: mysql2.PoolConnection;
-
-	/**
 	 * Pool.
 	 *
 	 * @type {Connection}
@@ -119,10 +108,6 @@ export default class PoolingMySQL extends DatabaseContext {
 	public context(type: 'transaction'): TransactionInPoolContext;
 	public context(type: 'query'): QueryInPoolContext;
 	public context(type: ContextType): TransactionInPoolContext | QueryInPoolContext {
-		if (this._connection === undefined) {
-			throw new Error('No connection was started.');
-		}
-
 		switch (type) {
 			case 'transaction':
 				return new TransactionInPoolContext(this);
@@ -134,7 +119,7 @@ export default class PoolingMySQL extends DatabaseContext {
 	}
 
 	/**
-	 * Close the connection or pool.
+	 * Close the pool.
 	 *
 	 * @returns {Promise<void>}
 	 * @public
@@ -144,9 +129,9 @@ export default class PoolingMySQL extends DatabaseContext {
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
 	public async close(): Promise<void> {
-		if (this._connection) {
-			await this._connection.end();
-			this._connection = undefined;
+		if (this._pool) {
+			await this._pool.end();
+			this._pool = undefined;
 		}
 	}
 
@@ -161,13 +146,9 @@ export default class PoolingMySQL extends DatabaseContext {
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
 	public async quit(): Promise<void> {
-		if (this._connection) {
-			this._connection.destroy();
-			this._connection = undefined;
-		}
-
 		if (this._pool) {
 			await this._pool.end();
+			this._pool.destroy();
 			this._pool = undefined;
 		}
 	}
@@ -182,6 +163,6 @@ export default class PoolingMySQL extends DatabaseContext {
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
 	public isActive(): boolean {
-		return !!this._connection;
+		return !!this._pool;
 	}
 }
