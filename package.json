@@ -1,6 +1,6 @@
 {
 	"name": "@piggly/mysql",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "An ESM/CommonJS library following Oriented-Object Programming pattern to manager a MySQL connection.",
 	"scripts": {
 		"check": "tsc --noEmit",
