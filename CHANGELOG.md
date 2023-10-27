@@ -19,3 +19,7 @@
 ## 1.2.0 at `2023-10-26`
 
 * Dependencies updates and general improvements.
+
+## 1.2.1 at `2023-10-26`
+
+* Fix typing for writable query.
