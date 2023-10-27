@@ -15,3 +15,7 @@
 ## 1.1.2 at `2023-07-12`
 
 * Release connection after query when pooling.
+
+## 1.2.0 at `2023-10-26`
+
+* Dependencies updates and general improvements.

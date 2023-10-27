@@ -60,7 +60,7 @@ export default class QueryInPoolContext implements QueryContextInterface {
 								return;
 							}
 
-							resolve(rows);
+							resolve(rows as T);
 						})
 						.catch(error => {
 							reject(error);
@@ -103,7 +103,7 @@ export default class QueryInPoolContext implements QueryContextInterface {
 								return;
 							}
 
-							resolve(rows);
+							resolve(rows as T);
 						})
 						.catch(error => {
 							reject(error);
