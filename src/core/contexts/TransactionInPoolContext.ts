@@ -190,7 +190,7 @@ export default class TransactionInPoolContext
 						return;
 					}
 
-					resolve(rows);
+					resolve(rows as T);
 				})
 				.catch(error => {
 					reject(error);
@@ -232,7 +232,7 @@ export default class TransactionInPoolContext
 						return;
 					}
 
-					resolve(rows);
+					resolve(rows as T);
 				})
 				.catch(error => {
 					reject(error);

@@ -45,3 +45,5 @@ export interface TransactionContextInterface extends QueryContextInterface {
 	commit(): Promise<void>;
 	rollback(): Promise<void>;
 }
+
+export type MySQLContext = QueryContextInterface | TransactionContextInterface;

@@ -56,7 +56,7 @@ export default class QueryContext implements QueryContextInterface {
 						return;
 					}
 
-					resolve(rows);
+					resolve(rows as T);
 				})
 				.catch(error => {
 					reject(error);
@@ -89,7 +89,7 @@ export default class QueryContext implements QueryContextInterface {
 						return;
 					}
 
-					resolve(rows);
+					resolve(rows as T);
 				})
 				.catch(error => {
 					reject(error);
