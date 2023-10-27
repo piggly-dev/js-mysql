@@ -24,11 +24,11 @@ export default abstract class MySQLRepository<
 	 * @since 1.2.0
 	 * @author Caique Araujo <caique@piggly.com.br>
 	 */
-	protected async write<WritableQueryResponse = Writable>(
+	protected async write<WritableQueryResponse extends Array<any> = Writable>(
 		sql: string,
 		values?: any[]
-	): Promise<WritableQueryResponse[] | undefined> {
-		return this.raw<WritableQueryResponse[]>(sql, values);
+	): Promise<WritableQueryResponse | undefined> {
+		return this.raw<WritableQueryResponse>(sql, values);
 	}
 
 	/**
